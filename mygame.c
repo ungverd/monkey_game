@@ -45,7 +45,7 @@ struct CharState {
 
 struct CharState charState;
 
-clock_t frameClock, prevClock;
+struct timespec frameClock, prevClock;
 double total_t;
 
 void load_textures() {
@@ -121,6 +121,12 @@ void process_input() {
     }
 }
 
+double timedelta(struct timespec prevCl, struct timespec frameCl){
+    int nsec_dif = frameCl.tv_nsec - prevCl.tv_nsec;
+    int sec_dif = frameCl.tv_sec - prevCl.tv_sec;
+    return (double)sec_dif + (double)nsec_dif/1000000000;
+}
+
 void mainloop() {
     process_input();
     SDL_SetRenderTarget(renderer, screenTexture);
@@ -132,9 +138,13 @@ void mainloop() {
     SDL_RenderClear(renderer);
     SDL_RenderCopy(renderer, screenTexture, NULL, NULL);
     SDL_RenderPresent(renderer);
-    prevClock = frameClock;
-    frameClock = clock();
-    total_t = (double)(frameClock - prevClock) / CLOCKS_PER_SEC;
+    prevClock.tv_nsec = frameClock.tv_nsec;
+    prevClock.tv_sec = frameClock.tv_sec;
+    clock_gettime(CLOCK_MONOTONIC, &frameClock);
+    total_t = timedelta(prevClock, frameClock);
+    if (total_t > 0.1) {
+        total_t = 0.1;
+    }
 }
 
 void destroy() {
@@ -177,7 +187,7 @@ int main(int argc, char* argv[]) {
                         SDL_PIXELFORMAT_RGB888,
                         SDL_TEXTUREACCESS_TARGET, WIDTH, HEIGHT);
     load_textures();
-    frameClock = clock();
+    clock_gettime(CLOCK_MONOTONIC, &frameClock);
     emscripten_set_main_loop(mainloop, 0, 1);
     destroy();
 }
