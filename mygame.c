@@ -7,7 +7,7 @@
 
 #define WIDTH 128
 #define HEIGHT 64
-#define VELOSITY 100
+#define VELOSITY 80
 #define FLIP 7.0
 #define SCALE 3
 
@@ -38,8 +38,8 @@ enum Movement {
 };
 
 struct CharState {
-    int x;
-    int y;
+    float x;
+    float y;
     enum Movement moveState;
 };
 
@@ -61,7 +61,8 @@ void load_textures() {
 void updateChar() {
     if (charState.moveState == RUN_LEFT | charState.moveState == RUN_RIGHT){
         float velosity = (charState.moveState == RUN_RIGHT) ? VELOSITY : -VELOSITY;
-        int delta = (int)(velosity * total_t);
+        float delta = velosity * total_t;
+        printf("delta %f\n", delta);
         charState.x += delta;
         if (charState.x < 0) {
             charState.x = 0;
@@ -77,7 +78,7 @@ void drawChar() {
     if (charState.moveState == SIT) {
         spr = spritePose.sit;
     } else {
-        if ((int)fmod((float)charState.x / FLIP, 2) == 0) {
+        if ((int)fmod(charState.x / FLIP, 2) == 0) {
             spr = spritePose.run1;
         }
         else {
@@ -85,14 +86,14 @@ void drawChar() {
         }
     }
     SDL_Rect dst_rect;
-    dst_rect.y = charState.y - spr.offsety;
+    dst_rect.y = (int)charState.y - spr.offsety;
     dst_rect.h = spr.rect.h;
     dst_rect.w = spr.rect.w;
     if (charState.moveState == RUN_LEFT) {
-        dst_rect.x = charState.x - spr.rect.w + spr.offsetx;
+        dst_rect.x = (int)charState.x - spr.rect.w + spr.offsetx;
         SDL_RenderCopyEx(renderer, spritesTexture, &spr.rect, &dst_rect, 0, NULL, SDL_FLIP_HORIZONTAL);
     } else {
-        dst_rect.x = charState.x - spr.offsetx;
+        dst_rect.x = (int)charState.x - spr.offsetx;
         SDL_RenderCopy(renderer, spritesTexture, &spr.rect, &dst_rect);
     }
 }
@@ -142,6 +143,7 @@ void mainloop() {
     prevClock.tv_sec = frameClock.tv_sec;
     clock_gettime(CLOCK_MONOTONIC, &frameClock);
     total_t = timedelta(prevClock, frameClock);
+    printf("timedelta %f\n", total_t);
     if (total_t > 0.1) {
         total_t = 0.1;
     }
