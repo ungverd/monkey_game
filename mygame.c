@@ -62,7 +62,6 @@ void updateChar() {
     if (charState.moveState == RUN_LEFT | charState.moveState == RUN_RIGHT){
         float velosity = (charState.moveState == RUN_RIGHT) ? VELOSITY : -VELOSITY;
         float delta = velosity * total_t;
-        printf("delta %f\n", delta);
         charState.x += delta;
         if (charState.x < 0) {
             charState.x = 0;
@@ -143,7 +142,6 @@ void mainloop() {
     prevClock.tv_sec = frameClock.tv_sec;
     clock_gettime(CLOCK_MONOTONIC, &frameClock);
     total_t = timedelta(prevClock, frameClock);
-    printf("timedelta %f\n", total_t);
     if (total_t > 0.1) {
         total_t = 0.1;
     }
